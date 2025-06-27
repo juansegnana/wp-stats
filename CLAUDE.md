@@ -11,7 +11,7 @@ This is a WhatsApp Chat Analyzer - a Next.js web application that allows users t
 - **Frontend**: Next.js 15.2.4 with React 19, TypeScript, and Tailwind CSS
 - **UI Components**: shadcn/ui components with Radix UI primitives
 - **Charts**: Recharts library for data visualization
-- **Backend Analysis**: Python script (`scripts/analyze_chat.py`) for chat parsing and analysis
+- **Backend Analysis**: Python script (`scripts/analyze_chat.py`) for chat parsing and analysis. When updating any field to return, make sure to update the `types/analysis.ts` file.
 - **API**: Next.js API route (`app/api/analyze-chat/route.ts`) that bridges frontend and Python backend
 
 ### Key Components
@@ -25,24 +25,23 @@ This is a WhatsApp Chat Analyzer - a Next.js web application that allows users t
 
 ```bash
 # Development server
-pnpm dev           # or npm run dev
-
-# Build application  
-pnpm build         # or npm run build
-
+pnpm dev # never run, the user is already running the server
+# Build application
+pnpm build
 # Start production server
-pnpm start         # or npm run start
-
+pnpm start
 # Linting
-pnpm lint          # or npm run lint
+pnpm lint
 ```
 
 ## Python Dependencies
 
 The application requires Python 3 with standard library modules:
+
 - `re`, `json`, `sys`, `datetime`, `collections`, `argparse`
 
 Test the Python script independently:
+
 ```bash
 python3 scripts/analyze_chat.py path/to/whatsapp-export.txt
 ```
@@ -66,7 +65,7 @@ python3 scripts/analyze_chat.py path/to/whatsapp-export.txt
 ## Component Structure
 
 - Uses shadcn/ui design system with `components.json` configuration
-- All UI components in `components/ui/` directory  
+- All UI components in `components/ui/` directory
 - Custom hooks in `hooks/` directory
 - Utilities in `lib/utils.ts`
 - Global styles in `app/globals.css`

@@ -1,8 +1,18 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import {
   BarChart,
   Bar,
@@ -15,42 +25,134 @@ import {
   PieChart,
   Pie,
   Cell,
-} from "recharts"
-
-interface AnalysisData {
-  summary: {
-    total_messages: number
-    participants: string[]
-    date_range: {
-      start: string
-      end: string
-    }
-    total_words: number
-    chat_duration_days: number
-  }
-  messages_per_year: Record<string, number>
-  messages_per_month: Record<string, number>
-  messages_per_participant: Record<string, number>
-  message_types_per_participant: Record<string, Record<string, number>>
-  messages_per_hour: Record<string, number>
-  messages_per_weekday: Record<string, number>
-  most_active_days: [string, number][]
-  word_counts: Record<string, number>
-  avg_message_length: Record<string, number>
-}
+} from "recharts";
+import { AnalysisData } from "@/types/analysis";
 
 interface ChatAnalysisProps {
-  data: AnalysisData
+  data: AnalysisData;
+  language?: "es" | "en";
 }
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82CA9D"]
+const translations = {
+  es: {
+    overview: "Resumen",
+    timeline: "Cronología",
+    participants: "Participantes",
+    activity: "Actividad",
+    media: "Multimedia",
+    messagesByYear: "Mensajes por Año",
+    messagesByYearDesc: "Total de mensajes enviados cada año",
+    messagesByParticipant: "Mensajes por Participante",
+    messagesByParticipantDesc: "Distribución de mensajes entre participantes",
+    chatSummary: "Resumen del Chat",
+    chatSummaryDesc: "Estadísticas clave sobre tu chat",
+    totalMessages: "Mensajes Totales",
+    totalWords: "Palabras Totales",
+    daysActive: "Días Activos",
+    chatPeriod: "Período del Chat",
+    monthlyTimeline: "Cronología Mensual de Mensajes",
+    monthlyTimelineDesc: "Mensajes enviados a lo largo del tiempo por mes",
+    mostActiveDays: "Días Más Activos",
+    mostActiveDaysDesc: "Los 10 días con más mensajes",
+    messages: "mensajes",
+    messageCountByParticipant: "Recuento de Mensajes por Participante",
+    messageCountByParticipantDesc:
+      "Total de mensajes enviados por cada persona",
+    wordCountByParticipant: "Recuento de Palabras por Participante",
+    wordCountByParticipantDesc: "Total de palabras escritas por cada persona",
+    avgMessageLength: "Longitud Promedio de Mensaje",
+    avgMessageLengthDesc:
+      "Promedio de caracteres por mensaje para cada participante",
+    messagesByHour: "Mensajes por Hora",
+    messagesByHourDesc: "Actividad a lo largo del día",
+    messagesByWeekday: "Mensajes por Día de la Semana",
+    messagesByWeekdayDesc: "Actividad por día de la semana",
+    mediaStatistics: "Estadísticas de Multimedia",
+    mediaStatisticsDesc: "Desglose de tipos de mensaje",
+    text: "Texto",
+    images: "Imágenes",
+    stickers: "Stickers",
+    audio: "Audio",
+    video: "Video",
+    documents: "Documentos",
+    mediaSummary: "Resumen de Multimedia",
+    mediaSummaryDesc:
+      "Total de multimedia compartido entre todos los participantes",
+    totalImages: "Total de Imágenes",
+    totalStickers: "Total de Stickers",
+    totalAudio: "Total de Audio",
+    totalVideos: "Total de Videos",
+    totalDocuments: "Total de Documentos",
+    month: "Mes",
+  },
+  en: {
+    overview: "Overview",
+    timeline: "Timeline",
+    participants: "Participants",
+    activity: "Activity",
+    media: "Media",
+    messagesByYear: "Messages by Year",
+    messagesByYearDesc: "Total messages sent each year",
+    messagesByParticipant: "Messages by Participant",
+    messagesByParticipantDesc: "Distribution of messages among participants",
+    chatSummary: "Chat Summary",
+    chatSummaryDesc: "Key statistics about your chat",
+    totalMessages: "Total Messages",
+    totalWords: "Total Words",
+    daysActive: "Days Active",
+    chatPeriod: "Chat Period",
+    monthlyTimeline: "Monthly Message Timeline",
+    monthlyTimelineDesc: "Messages sent over time by month",
+    mostActiveDays: "Most Active Days",
+    mostActiveDaysDesc: "Top 10 days with the most messages",
+    messages: "messages",
+    messageCountByParticipant: "Message Count by Participant",
+    messageCountByParticipantDesc: "Total messages sent by each person",
+    wordCountByParticipant: "Word Count by Participant",
+    wordCountByParticipantDesc: "Total words written by each person",
+    avgMessageLength: "Average Message Length",
+    avgMessageLengthDesc: "Average characters per message for each participant",
+    messagesByHour: "Messages by Hour",
+    messagesByHourDesc: "Activity throughout the day",
+    messagesByWeekday: "Messages by Day of Week",
+    messagesByWeekdayDesc: "Activity by weekday",
+    mediaStatistics: "Media Statistics",
+    mediaStatisticsDesc: "Breakdown of message types",
+    text: "Text",
+    images: "Images",
+    stickers: "Stickers",
+    audio: "Audio",
+    video: "Video",
+    documents: "Documents",
+    mediaSummary: "Media Summary",
+    mediaSummaryDesc: "Total media shared across all participants",
+    totalImages: "Total Images",
+    totalStickers: "Total Stickers",
+    totalAudio: "Total Audio",
+    totalVideos: "Total Videos",
+    totalDocuments: "Total Documents",
+    month: "Month",
+  },
+};
 
-export function ChatAnalysis({ data }: ChatAnalysisProps) {
+const COLORS = [
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#8884D8",
+  "#82CA9D",
+];
+
+export function ChatAnalysis({ data, language = "es" }: ChatAnalysisProps) {
+  const t = translations[language];
   // Prepare data for charts
-  const yearlyData = Object.entries(data.messages_per_year).map(([year, count]) => ({
-    year,
-    messages: count,
-  }))
+  const yearlyData = Object.entries(data.messages_per_year).map(
+    ([year, count]) => ({
+      year,
+      messages: count,
+    })
+  );
 
   const monthlyData = Object.entries(data.messages_per_month)
     .sort(([a], [b]) => a.localeCompare(b))
@@ -58,25 +160,29 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
       month: month.substring(5), // Get MM part
       fullMonth: month,
       messages: count,
-    }))
+    }));
 
-  const participantData = Object.entries(data.messages_per_participant).map(([name, count]) => ({
-    name,
-    messages: count,
-  }))
+  const participantData = Object.entries(data.messages_per_participant).map(
+    ([name, count]) => ({
+      name,
+      messages: count,
+    })
+  );
 
   const hourlyData = Array.from({ length: 24 }, (_, hour) => ({
     hour: hour.toString().padStart(2, "0"),
     messages: data.messages_per_hour[hour] || 0,
-  }))
+  }));
 
-  const weekdayData = Object.entries(data.messages_per_weekday).map(([day, count]) => ({
-    day,
-    messages: count,
-  }))
+  const weekdayData = Object.entries(data.messages_per_weekday).map(
+    ([day, count]) => ({
+      day,
+      messages: count,
+    })
+  );
 
   const mediaStatsData = data.summary.participants.map((participant) => {
-    const types = data.message_types_per_participant[participant] || {}
+    const types = data.message_types_per_participant[participant] || {};
     return {
       participant,
       text: types.text || 0,
@@ -85,25 +191,25 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
       audio: types.audio || 0,
       video: types.video || 0,
       document: types.document || 0,
-    }
-  })
+    };
+  });
 
   return (
     <Tabs defaultValue="overview" className="space-y-4">
       <TabsList className="grid w-full grid-cols-5">
-        <TabsTrigger value="overview">Overview</TabsTrigger>
-        <TabsTrigger value="timeline">Timeline</TabsTrigger>
-        <TabsTrigger value="participants">Participants</TabsTrigger>
-        <TabsTrigger value="activity">Activity</TabsTrigger>
-        <TabsTrigger value="media">Media</TabsTrigger>
+        <TabsTrigger value="overview">{t.overview}</TabsTrigger>
+        <TabsTrigger value="timeline">{t.timeline}</TabsTrigger>
+        <TabsTrigger value="participants">{t.participants}</TabsTrigger>
+        <TabsTrigger value="activity">{t.activity}</TabsTrigger>
+        <TabsTrigger value="media">{t.media}</TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview" className="space-y-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card>
             <CardHeader>
-              <CardTitle>Messages by Year</CardTitle>
-              <CardDescription>Total messages sent each year</CardDescription>
+              <CardTitle>{t.messagesByYear}</CardTitle>
+              <CardDescription>{t.messagesByYearDesc}</CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
@@ -130,8 +236,8 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Messages by Participant</CardTitle>
-              <CardDescription>Distribution of messages among participants</CardDescription>
+              <CardTitle>{t.messagesByParticipant}</CardTitle>
+              <CardDescription>{t.messagesByParticipantDesc}</CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
@@ -150,13 +256,18 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
+                      label={({ name, percent }) =>
+                        `${name} ${((percent || 0) * 100).toFixed(1)}%`
+                      }
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="messages"
                     >
                       {participantData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <ChartTooltip content={<ChartTooltipContent />} />
@@ -169,34 +280,44 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Chat Summary</CardTitle>
-            <CardDescription>Key statistics about your chat</CardDescription>
+            <CardTitle>{t.chatSummary}</CardTitle>
+            <CardDescription>{t.chatSummaryDesc}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-blue-600">{data.summary.total_messages.toLocaleString()}</p>
-                <p className="text-sm text-gray-600">Total Messages</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {data.summary.total_messages.toLocaleString()}
+                </p>
+                <p className="text-sm text-gray-600">{t.totalMessages}</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-green-600">{data.summary.total_words.toLocaleString()}</p>
-                <p className="text-sm text-gray-600">Total Words</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {data.summary.total_words.toLocaleString()}
+                </p>
+                <p className="text-sm text-gray-600">{t.totalWords}</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-purple-600">{data.summary.chat_duration_days}</p>
-                <p className="text-sm text-gray-600">Days Active</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {data.summary.chat_duration_days}
+                </p>
+                <p className="text-sm text-gray-600">{t.daysActive}</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-orange-600">{data.summary.participants.length}</p>
-                <p className="text-sm text-gray-600">Participants</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {data.summary.participants.length}
+                </p>
+                <p className="text-sm text-gray-600">{t.participants}</p>
               </div>
             </div>
             <div className="mt-4 text-sm text-gray-600">
               <p>
-                <strong>Chat Period:</strong> {data.summary.date_range.start} to {data.summary.date_range.end}
+                <strong>{t.chatPeriod}:</strong> {data.summary.date_range.start}{" "}
+                to {data.summary.date_range.end}
               </p>
               <p>
-                <strong>Participants:</strong> {data.summary.participants.join(", ")}
+                <strong>{t.participants}:</strong>{" "}
+                {data.summary.participants.join(", ")}
               </p>
             </div>
           </CardContent>
@@ -206,8 +327,8 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
       <TabsContent value="timeline" className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>Monthly Message Timeline</CardTitle>
-            <CardDescription>Messages sent over time by month</CardDescription>
+            <CardTitle>{t.monthlyTimeline}</CardTitle>
+            <CardDescription>{t.monthlyTimelineDesc}</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer
@@ -222,9 +343,15 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="fullMonth" tickFormatter={(value) => value.substring(5)} />
+                  <XAxis
+                    dataKey="fullMonth"
+                    tickFormatter={(value) => value.substring(5)}
+                  />
                   <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} labelFormatter={(value) => `Month: ${value}`} />
+                  <ChartTooltip
+                    content={<ChartTooltipContent />}
+                    labelFormatter={(value) => `${t.month}: ${value}`}
+                  />
                   <Line
                     type="monotone"
                     dataKey="messages"
@@ -240,19 +367,26 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Most Active Days</CardTitle>
-            <CardDescription>Top 10 days with the most messages</CardDescription>
+            <CardTitle>{t.mostActiveDays}</CardTitle>
+            <CardDescription>{t.mostActiveDaysDesc}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {data.most_active_days.slice(0, 10).map(([date, count], index) => (
-                <div key={date} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                  <span className="font-medium">
-                    #{index + 1} {date}
-                  </span>
-                  <span className="text-blue-600 font-bold">{count} messages</span>
-                </div>
-              ))}
+              {data.most_active_days
+                .slice(0, 10)
+                .map(([date, count], index) => (
+                  <div
+                    key={date}
+                    className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                  >
+                    <span className="font-medium">
+                      #{index + 1} {date}
+                    </span>
+                    <span className="text-blue-600 font-bold">
+                      {count} {t.messages}
+                    </span>
+                  </div>
+                ))}
             </div>
           </CardContent>
         </Card>
@@ -262,26 +396,41 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card>
             <CardHeader>
-              <CardTitle>Message Count by Participant</CardTitle>
-              <CardDescription>Total messages sent by each person</CardDescription>
+              <CardTitle>{t.messageCountByParticipant}</CardTitle>
+              <CardDescription>
+                {t.messageCountByParticipantDesc}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {Object.entries(data.messages_per_participant)
                   .sort(([, a], [, b]) => b - a)
                   .map(([name, count]) => (
-                    <div key={name} className="flex items-center justify-between">
+                    <div
+                      key={name}
+                      className="flex items-center justify-between"
+                    >
                       <span className="font-medium">{name}</span>
                       <div className="flex items-center gap-2">
                         <div className="w-32 bg-gray-200 rounded-full h-2">
                           <div
                             className="bg-blue-600 h-2 rounded-full"
                             style={{
-                              width: `${(count / Math.max(...Object.values(data.messages_per_participant))) * 100}%`,
+                              width: `${
+                                (count /
+                                  Math.max(
+                                    ...Object.values(
+                                      data.messages_per_participant
+                                    )
+                                  )) *
+                                100
+                              }%`,
                             }}
                           />
                         </div>
-                        <span className="text-sm font-bold w-16 text-right">{count.toLocaleString()}</span>
+                        <span className="text-sm font-bold w-16 text-right">
+                          {count.toLocaleString()}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -291,26 +440,37 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Word Count by Participant</CardTitle>
-              <CardDescription>Total words written by each person</CardDescription>
+              <CardTitle>{t.wordCountByParticipant}</CardTitle>
+              <CardDescription>{t.wordCountByParticipantDesc}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {Object.entries(data.word_counts)
                   .sort(([, a], [, b]) => b - a)
                   .map(([name, count]) => (
-                    <div key={name} className="flex items-center justify-between">
+                    <div
+                      key={name}
+                      className="flex items-center justify-between"
+                    >
                       <span className="font-medium">{name}</span>
                       <div className="flex items-center gap-2">
                         <div className="w-32 bg-gray-200 rounded-full h-2">
                           <div
                             className="bg-green-600 h-2 rounded-full"
                             style={{
-                              width: `${(count / Math.max(...Object.values(data.word_counts))) * 100}%`,
+                              width: `${
+                                (count /
+                                  Math.max(
+                                    ...Object.values(data.word_counts)
+                                  )) *
+                                100
+                              }%`,
                             }}
                           />
                         </div>
-                        <span className="text-sm font-bold w-16 text-right">{count.toLocaleString()}</span>
+                        <span className="text-sm font-bold w-16 text-right">
+                          {count.toLocaleString()}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -321,8 +481,8 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Average Message Length</CardTitle>
-            <CardDescription>Average characters per message for each participant</CardDescription>
+            <CardTitle>{t.avgMessageLength}</CardTitle>
+            <CardDescription>{t.avgMessageLengthDesc}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -336,11 +496,19 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
                         <div
                           className="bg-purple-600 h-2 rounded-full"
                           style={{
-                            width: `${(avgLength / Math.max(...Object.values(data.avg_message_length))) * 100}%`,
+                            width: `${
+                              (avgLength /
+                                Math.max(
+                                  ...Object.values(data.avg_message_length)
+                                )) *
+                              100
+                            }%`,
                           }}
                         />
                       </div>
-                      <span className="text-sm font-bold w-16 text-right">{Math.round(avgLength)}</span>
+                      <span className="text-sm font-bold w-16 text-right">
+                        {Math.round(avgLength)}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -353,8 +521,8 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card>
             <CardHeader>
-              <CardTitle>Messages by Hour</CardTitle>
-              <CardDescription>Activity throughout the day</CardDescription>
+              <CardTitle>{t.messagesByHour}</CardTitle>
+              <CardDescription>{t.messagesByHourDesc}</CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
@@ -381,8 +549,8 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Messages by Day of Week</CardTitle>
-              <CardDescription>Activity by weekday</CardDescription>
+              <CardTitle>{t.messagesByWeekday}</CardTitle>
+              <CardDescription>{t.messagesByWeekdayDesc}</CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
@@ -410,38 +578,194 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
       </TabsContent>
 
       <TabsContent value="media" className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t.mediaSummary}</CardTitle>
+              <CardDescription>{t.mediaSummaryDesc}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer
+                config={{
+                  images: {
+                    label: t.images,
+                    color: "#22c55e",
+                  },
+                  stickers: {
+                    label: t.stickers,
+                    color: "#eab308",
+                  },
+                  audio: {
+                    label: t.audio,
+                    color: "#a855f7",
+                  },
+                  video: {
+                    label: t.video,
+                    color: "#ef4444",
+                  },
+                  documents: {
+                    label: t.documents,
+                    color: "#6b7280",
+                  },
+                }}
+                className="h-[300px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        {
+                          name: t.images,
+                          value: mediaStatsData.reduce((sum, p) => sum + p.image, 0),
+                          fill: "#22c55e"
+                        },
+                        {
+                          name: t.stickers,
+                          value: mediaStatsData.reduce((sum, p) => sum + p.sticker, 0),
+                          fill: "#eab308"
+                        },
+                        {
+                          name: t.audio,
+                          value: mediaStatsData.reduce((sum, p) => sum + p.audio, 0),
+                          fill: "#a855f7"
+                        },
+                        {
+                          name: t.video,
+                          value: mediaStatsData.reduce((sum, p) => sum + p.video, 0),
+                          fill: "#ef4444"
+                        },
+                        {
+                          name: t.documents,
+                          value: mediaStatsData.reduce((sum, p) => sum + p.document, 0),
+                          fill: "#6b7280"
+                        }
+                      ].filter(item => item.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) =>
+                        `${name} ${((percent || 0) * 100).toFixed(1)}%`
+                      }
+                      outerRadius={80}
+                      dataKey="value"
+                    >
+                      {[
+                        { fill: "#22c55e" },
+                        { fill: "#eab308" },
+                        { fill: "#a855f7" },
+                        { fill: "#ef4444" },
+                        { fill: "#6b7280" }
+                      ].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t.messagesByParticipant} - {t.media}</CardTitle>
+              <CardDescription>Media shared by each participant</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer
+                config={{
+                  images: {
+                    label: t.images,
+                    color: "#22c55e",
+                  },
+                  stickers: {
+                    label: t.stickers,
+                    color: "#eab308",
+                  },
+                  audio: {
+                    label: t.audio,
+                    color: "#a855f7",
+                  },
+                  video: {
+                    label: t.video,
+                    color: "#ef4444",
+                  },
+                  documents: {
+                    label: t.documents,
+                    color: "#6b7280",
+                  },
+                }}
+                className="h-[300px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={mediaStatsData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="participant" 
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="image" stackId="a" fill="#22c55e" name={t.images} />
+                    <Bar dataKey="sticker" stackId="a" fill="#eab308" name={t.stickers} />
+                    <Bar dataKey="audio" stackId="a" fill="#a855f7" name={t.audio} />
+                    <Bar dataKey="video" stackId="a" fill="#ef4444" name={t.video} />
+                    <Bar dataKey="document" stackId="a" fill="#6b7280" name={t.documents} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="grid grid-cols-1 gap-4">
           {mediaStatsData.map((participant) => (
             <Card key={participant.participant}>
               <CardHeader>
-                <CardTitle>{participant.participant} - Media Statistics</CardTitle>
-                <CardDescription>Breakdown of message types</CardDescription>
+                <CardTitle>
+                  {participant.participant} - {t.mediaStatistics}
+                </CardTitle>
+                <CardDescription>{t.mediaStatisticsDesc}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600">{participant.text.toLocaleString()}</p>
-                    <p className="text-sm text-gray-600">Text</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {participant.text.toLocaleString()}
+                    </p>
+                    <p className="text-sm text-gray-600">{t.text}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600">{participant.image.toLocaleString()}</p>
-                    <p className="text-sm text-gray-600">Images</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {participant.image.toLocaleString()}
+                    </p>
+                    <p className="text-sm text-gray-600">{t.images}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-yellow-600">{participant.sticker.toLocaleString()}</p>
-                    <p className="text-sm text-gray-600">Stickers</p>
+                    <p className="text-2xl font-bold text-yellow-600">
+                      {participant.sticker.toLocaleString()}
+                    </p>
+                    <p className="text-sm text-gray-600">{t.stickers}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-purple-600">{participant.audio.toLocaleString()}</p>
-                    <p className="text-sm text-gray-600">Audio</p>
+                    <p className="text-2xl font-bold text-purple-600">
+                      {participant.audio.toLocaleString()}
+                    </p>
+                    <p className="text-sm text-gray-600">{t.audio}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-red-600">{participant.video.toLocaleString()}</p>
-                    <p className="text-sm text-gray-600">Video</p>
+                    <p className="text-2xl font-bold text-red-600">
+                      {participant.video.toLocaleString()}
+                    </p>
+                    <p className="text-sm text-gray-600">{t.video}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-600">{participant.document.toLocaleString()}</p>
-                    <p className="text-sm text-gray-600">Documents</p>
+                    <p className="text-2xl font-bold text-gray-600">
+                      {participant.document.toLocaleString()}
+                    </p>
+                    <p className="text-sm text-gray-600">{t.documents}</p>
                   </div>
                 </div>
               </CardContent>
@@ -451,45 +775,55 @@ export function ChatAnalysis({ data }: ChatAnalysisProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Media Summary</CardTitle>
-            <CardDescription>Total media shared across all participants</CardDescription>
+            <CardTitle>{t.mediaSummary}</CardTitle>
+            <CardDescription>{t.mediaSummaryDesc}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="text-center">
                 <p className="text-3xl font-bold text-green-600">
-                  {mediaStatsData.reduce((sum, p) => sum + p.image, 0).toLocaleString()}
+                  {mediaStatsData
+                    .reduce((sum, p) => sum + p.image, 0)
+                    .toLocaleString()}
                 </p>
-                <p className="text-sm text-gray-600">Total Images</p>
+                <p className="text-sm text-gray-600">{t.totalImages}</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-bold text-yellow-600">
-                  {mediaStatsData.reduce((sum, p) => sum + p.sticker, 0).toLocaleString()}
+                  {mediaStatsData
+                    .reduce((sum, p) => sum + p.sticker, 0)
+                    .toLocaleString()}
                 </p>
-                <p className="text-sm text-gray-600">Total Stickers</p>
+                <p className="text-sm text-gray-600">{t.totalStickers}</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-bold text-purple-600">
-                  {mediaStatsData.reduce((sum, p) => sum + p.audio, 0).toLocaleString()}
+                  {mediaStatsData
+                    .reduce((sum, p) => sum + p.audio, 0)
+                    .toLocaleString()}
                 </p>
-                <p className="text-sm text-gray-600">Total Audio</p>
+                <p className="text-sm text-gray-600">{t.totalAudio}</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-bold text-red-600">
-                  {mediaStatsData.reduce((sum, p) => sum + p.video, 0).toLocaleString()}
+                  {mediaStatsData
+                    .reduce((sum, p) => sum + p.video, 0)
+                    .toLocaleString()}
                 </p>
-                <p className="text-sm text-gray-600">Total Videos</p>
+                <p className="text-sm text-gray-600">{t.totalVideos}</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-bold text-gray-600">
-                  {mediaStatsData.reduce((sum, p) => sum + p.document, 0).toLocaleString()}
+                  {mediaStatsData
+                    .reduce((sum, p) => sum + p.document, 0)
+                    .toLocaleString()}
                 </p>
-                <p className="text-sm text-gray-600">Total Documents</p>
+                <p className="text-sm text-gray-600">{t.totalDocuments}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </TabsContent>
     </Tabs>
-  )
+  );
 }
