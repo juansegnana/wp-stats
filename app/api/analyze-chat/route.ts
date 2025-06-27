@@ -3,20 +3,48 @@ import { spawn } from "child_process"
 import { writeFile, unlink } from "fs/promises"
 import { join } from "path"
 import { tmpdir } from "os"
+import { createGunzip } from "zlib"
+import { pipeline } from "stream/promises"
+import { Readable } from "stream"
 
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData()
-    const file = formData.get("file") as File
+    const contentEncoding = request.headers.get('content-encoding')
+    let fileContent: string
 
-    if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 })
+    if (contentEncoding === 'gzip') {
+      // Handle compressed data
+      const compressedData = await request.arrayBuffer()
+      const gunzip = createGunzip()
+      const readable = Readable.from(Buffer.from(compressedData))
+      
+      const chunks: Buffer[] = []
+      await pipeline(
+        readable,
+        gunzip,
+        async function* (source) {
+          for await (const chunk of source) {
+            chunks.push(chunk)
+          }
+        }
+      )
+      
+      fileContent = Buffer.concat(chunks).toString('utf-8')
+    } else {
+      // Handle regular form data (fallback)
+      const formData = await request.formData()
+      const file = formData.get("file") as File
+
+      if (!file) {
+        return NextResponse.json({ error: "No file provided" }, { status: 400 })
+      }
+
+      fileContent = await file.text()
     }
 
     // Create a temporary file
     const tempFilePath = join(tmpdir(), `whatsapp-${Date.now()}.txt`)
-    const buffer = Buffer.from(await file.arrayBuffer())
-    await writeFile(tempFilePath, buffer)
+    await writeFile(tempFilePath, fileContent, 'utf-8')
 
     try {
       // Run the Python analysis script

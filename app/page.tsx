@@ -213,8 +213,33 @@ export default function WhatsAppAnalyzer() {
     setUploadProgress(0);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      // Read file content
+      const fileContent = await file.text();
+      
+      // Compress the content
+      const encoder = new TextEncoder();
+      const textData = encoder.encode(fileContent);
+      const compressionStream = new CompressionStream('gzip');
+      const writer = compressionStream.writable.getWriter();
+      const reader = compressionStream.readable.getReader();
+      
+      writer.write(textData);
+      writer.close();
+      
+      const chunks = [];
+      let done = false;
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) chunks.push(value);
+      }
+      
+      const compressedData = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.length, 0));
+      let offset = 0;
+      for (const chunk of chunks) {
+        compressedData.set(chunk, offset);
+        offset += chunk.length;
+      }
 
       // Simulate upload progress
       const progressInterval = setInterval(() => {
@@ -223,7 +248,12 @@ export default function WhatsAppAnalyzer() {
 
       const response = await fetch("/api/analyze-chat", {
         method: "POST",
-        body: formData,
+        headers: {
+          'Content-Type': 'application/octet-stream',
+          'Content-Encoding': 'gzip',
+          'X-Original-Filename': file.name,
+        },
+        body: compressedData,
       });
 
       clearInterval(progressInterval);
